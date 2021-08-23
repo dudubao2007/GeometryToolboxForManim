@@ -1,14 +1,25 @@
 import utils
+from value import *
 import math
 import sys
 class Vector:
     def __init__(self, x = 0.0, y = 0.0):
-        self.x = float(x)
-        self.y = float(y)
+        self.__x = to_value(x)
+        self.__y = to_value(y)
+    @property
+    def x(self):
+        return self.__x.value
+    @x.setter
+    def x(self, x):
+        self.__x = to_value(x)
+    @property
+    def y(self):
+        return self.__y.value
+    @y.setter
+    def y(self, y):
+        self.__y = to_value(y)
     def __eq__(self, obj):
         return utils.eq(self.x, obj.x) and utils.eq(self.y, obj.y)
-    def copy(self):
-        return Vector(self.x, self.y)
     def __add__(self, obj):
         return Vector(self.x+obj.x, self.y+obj.y)
     def __sub__(self, obj):
@@ -37,57 +48,57 @@ class Vector:
 
 Point = Vector
 
-def PointFromK(A, B, k):
+def point_from_k(A, B, k):
     return A * (1.0-k) + B * k
 
-def MidPoint(A, B):
+def midpoint(A, B):
     return (A + B) * 0.5
 
-def Distance(A, B):
+def distance(A, B):
     return abs(A - B)
 
-def IsVectorCollinear(u, v):
+def is_vector_collinear(u, v):
     return utils.eq(u^v)
 
-def IsCollinear(A, B, O = Point()):
+def is_collinear(A, B, O = Point()):
     return IsVectorCollinear(A-O, B-O)
 
-def VectorSignedAngle(u, v):
+def vector_signed_angle(u, v):
     a = math.atan2(u^v, u*v)
     if utils.eq(abs(a), math.pi):
         sys.stderr.write("Warning, calculating signed angle with angle pi.\n")
     return a
 
-def VectorAngle(u, v):
+def vector_angle(u, v):
     return abs(math.atan2(u^v, u*v))
 
-def Angle(A, B, O = Point()):
+def angle(A, B, O = Point()):
     return VectorAngle(A-O, B-O)
     
-def SignedAngle(A, B, O = Point()):
+def signed_angle(A, B, O = Point()):
     return VectorSignedAngle(A-O, B-O)
 
-def IsVectorPerpendicular(u, v):
+def is_vector_perpendicular(u, v):
     return utils.eq(u*v)
 
-def IsPerpendicular(A, B, O = Point()):
+def is_perpendicular(A, B, O = Point()):
     return IsVectorVertical(A-O, B-O)
 
-def VectorRotate(v, theta = 0.5*math.pi):
+def vector_rotate(v, theta = 0.5*math.pi):
     c = math.cos(theta)
     s = math.sin(theta)
     return Vector(v.x*c-v.y*s, v.x*s+v.y*c)
 
-def Rotate(A, theta = 0.5*math.pi, O = Point()):
+def rotate(A, theta = 0.5*math.pi, O = Point()):
     return O + VectorRotate(A-O, theta)
 
-def VectorDiv(u, v):
+def vector_div(u, v):
     assert v != Vector(), "Divided by 0-vector."
     assert IsVectorCollinear(u, v), "Non-collinear vectors in VectorDiv."
     if not utils.eq(v.x):
         return u.x/v.x
     return u.y/v.y
 
-def GetK(C, A, B):
+def get_k(C, A, B):
     return VectorDiv(C-A, B-A)
     

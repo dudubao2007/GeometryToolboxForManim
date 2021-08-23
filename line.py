@@ -1,127 +1,120 @@
 from vector import *
-class Segment:
-    def __init__(self, A = Point(), B = Point(1, 0)):
-        if (A == B):
+class LineLike:
+    pass
+class Segment(LineLike):
+    def __init__(self, start = Point(), end = Point(1, 0)):
+        if (start == end):
             sys.stderr.write("Warning, the segment is too short.\n")
-        self.A = A.copy()
-        self.B = B.copy()
+        self.__start = start
+        self.__end = end
+    @property
+    def start(self):
+        return self.__start
+    @property
+    def end(self):
+        return self.__end
+    @property
+    def direction(self):
+        return self.__end - self.__start
     def __abs__(self):
-        return Distance(self.A, self.B)
-    def MidPoint(self):
-        return MidPoint(self.A, self.B)
-    def PointFromK(self, k):
-        return PointFromK(self.A, self.B, k)
+        return Distance(self.start, self.end)
+    def midpoint(self):
+        return midpoint(self.start, self.end)
+    def point_from_k(self, k):
+        return point_from_k(self.start, self.end, k)
     def __contains__(self, P):
         try:
-            k = GetK(P, self.A, self.B)
+            k = get_k(P, self.start, self.end)
         except AssertionError:
             return False
         else:
             return utils.in_range(k, 0.0, 1.0)
-    def copy(self):
-        return Segment(self.A.copy(), self.B.copy())
-    def direction(self):
-        return self.B - self.A
-    def reverse(self):
-        return Segment(self.B, self.A)
-    def line(self):
-        return Line(self.A, self.B - self.A)
-    def halfLine(self, rev = False):
-        if rev:
-            return HalfLine(self.B, self.A - self.B)
-        return HalfLine(self.A, self.B - self.A)
-    def Rotate(self, theta = 0.5*math.pi, O = Point()):
-        return Segment(Rotate(self.A, theta, O), Rotate(self.B, theta, O))
-    def update(self, obj):
-        self.A = obj.A.copy()
-        self.B = obj.B.copy()
+    def __repr__(self):
+        return f"Segment({self.start}, {self.end})"
 
-class Line:
-    def __init__(self, A = Point(), v = Vector(1, 0)):
-        if (v == Vector()):
+class Line(LineLike):
+    def __init__(self, start = Point(), direction = Vector(1, 0)):
+        if (direction == Vector()):
             sys.stderr.write("Warning, the direction vector is too short.\n")
-        self.A = A.copy()
-        self.v = v.copy()
-        self.B = A + v
+        self.__start = start
+        self.__direction = direction
+    @property
+    def start(self):
+        return self.__start
+    @property
+    def end(self):
+        return self.__start + self.__direction
+    @property
     def direction(self):
-        return self.v
+        return self.__direction
     def __contains__(self, P):
         try:
-            k = VectorDiv(P - self.A, self.v)
+            k = vector_div(P - self.start, self.direction)
         except AssertionError:
             return False
         else:
             return True
-    def segment(self, a = 0.0, b = 1.0):
-        return Segment(self.A + self.v * a, self.A + self.v * b)
-    def halfLine(self, a = 0.0, sgn = 1):
-        return HalfLine(self.A + self.v * a, self.v * sgn)
-    def Rotate(self, theta = 0.5*math.pi, O = Point()):
-        return Segment(Rotate(self.A, theta, O), VectorRotate(self.A.v, theta))
     def __repr__(self):
-        return f"({self.A}, {self.v})"
+        return f"Line({self.start}, {self.direction})"
     
-class HalfLine:
-    def __init__(self, A = Point(), v = Vector(1, 0)):
-        if (v == Vector()):
+class HalfLine(LineLike):
+    def __init__(self, start = Point(), direction = Vector(1, 0)):
+        if (direction == Vector()):
             sys.stderr.write("Warning, the direction vector is too short.\n")
-        self.A = A.copy()
-        self.v = v.copy()
+        self.__start = start
+        self.__direction = direction
+    @property
+    def start(self):
+        return self.__start
+    @property
+    def end(self):
+        return self.__start + self.__direction
+    @property
     def direction(self):
-        return self.v
+        return self.__direction
     def __contains__(self, P):
         try:
-            k = VectorDiv(P - self.A, self.v)
+            k = vector_div(P - self.start, self.direction)
         except AssertionError:
             return False
         else:
             return utils.in_range(k, 0.0)
-    def segment(self, a = 0.0, b = 1.0):
-        return Segment(self.A + self.v * a, self.A + self.v * b)
-    def line(self):
-        return Line(self.A, self.v)
-    def Rotate(self, theta = 0.5*math.pi, O = Point()):
-        return Segment(Rotate(self.A, theta, O), VectorRotate(self.A.v, theta))
+    def __repr__(self):
+        return f"HalfLine({self.start}, {self.direction})"
 
-def toLine(l):
-    return Line(l.A, l.direction())
+def is_vertical(a, b):
+    return is_perpendicular(a.direction, b.direction)
 
-def IsVertical(a, b):
-    return IsPerpendicular(a.direction(), b.direction())
+def is_parallel(a, b):
+    return is_collinear(a.direction, b.direction)
 
-def IsParallel(a, b):
-    return IsCollinear(a.direction(), b.direction())
+def line_intersection(a, b):
+    assert not is_parallel(a, b), "Parallel lines never intersect."
+    return a.start - a.direction * (((a.start-b.start)^(b.direction)) / (a.direction^b.direction))
 
-def LineIntersection(a, b):
-    assert not IsParallel(a, b), "Parallel lines never intersect."
-    return a.A - a.v * (((a.A-b.A)^(b.v)) / (a.v^b.v))
+def parallel_line(P, l):
+    return Line(P, l.direction)
 
-def LineLikeIntersection(a, b):
-    return LineIntersection(toLine(a), toLine(b))
+def vertical_line(P, l):
+    return Line(P, Vector(-l.direction.y, l.direction.x))
 
-def ParallelLine(P, l):
-    return Line(P, l.direction())
+# def GetLine(A, t, method = "AB"):
+    # if (method == "AB"):
+        # return Line(A, t-A)
+    # if (method == "Av"):
+        # return Line(A, t)
+    # raise NotImplementedError
 
-def VerticalLine(P, l):
-    return Line(P, Vector(-l.direction().y, l.direction().x))
+# def GetHalfLine(A, t, method = "AB"):
+    # if (method == "AB"):
+        # return HalfLine(A, t-A)
+    # if (method == "Av"):
+        # return HalfLine(A, t)
+    # raise NotImplementedError
 
-def GetLine(A, t, method = "AB"):
-    if (method == "AB"):
-        return Line(A, t-A)
-    if (method == "Av"):
-        return Line(A, t)
-    raise NotImplementedError
-
-def GetHalfLine(A, t, method = "AB"):
-    if (method == "AB"):
-        return HalfLine(A, t-A)
-    if (method == "Av"):
-        return HalfLine(A, t)
-    raise NotImplementedError
-
-def GetSegment(A, t, method = "AB"):
-    if (method == "AB"):
-        return Segment(A, t)
-    if (method == "Av"):
-        return Segment(A, A + t)
-    raise NotImplementedError
+# def GetSegment(A, t, method = "AB"):
+    # if (method == "AB"):
+        # return Segment(A, t)
+    # if (method == "Av"):
+        # return Segment(A, A + t)
+    # raise NotImplementedError

@@ -1,0 +1,21 @@
+from vector import *
+from utils import *
+from line import *
+A = Point(1, 2)
+B = Point(3, 4)
+print(Distance(A, B))
+print(Distance(1, -2))
+print(SignedAngle(Point(3, 2), Point(3, 2)))
+print(IsCollinear(Point(3, 2), Point(-6, 4)))
+print(in_range(float("inf"), 1, 2))
+print()
+l = Segment(A, B)
+print(A in l)
+print(B in l)
+print(Point(-1, 0) in l)
+print(Point(2, 3) in l)
+print(Point(2, 4) in l)
+print()
+a = Line(Point(0, 1), Vector(2, 4))
+b = Line(Point(1, 2), Vector(-2, -3))
+print(LineIntersection(a, b))
