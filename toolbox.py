@@ -1,56 +1,70 @@
 from vector import *
 from line import *
 from circle import *
-class GetLine(Line):
-    def __init__(self, start, end):
-        self.__start = start
-        self.__end = end
-    @property
-    def direction():
-        return self.__end - self.__start
-    @property
-    def end():
-        return self.__end
+from value import *
+import manim
 
-class GetHalfLine(HalfLine):
-    def __init__(self, start, end):
-        self.__start = start
-        self.__end = end
-    @property
-    def direction():
-        return self.__end - self.__start
-    @property
-    def end():
-        return self.__end
+def to_value(x):
+    if hasattr(x, "value"):
+        return x
+    return Value(x)
+
+# class GetLine(Line):
+    # def __init__(self, start, end):
+        # self.__start = start
+        # self.__end = end
+    # @property
+    # def direction():
+        # return self.__end - self.__start
+    # @property
+    # def end():
+        # return self.__end
+
+# class GetHalfLine(HalfLine):
+    # def __init__(self, start, end):
+        # self.__start = start
+        # self.__end = end
+    # @property
+    # def direction():
+        # return self.__end - self.__start
+    # @property
+    # def end():
+        # return self.__end
         
-GetSegment = Segment
+# GetSegment = Segment
 
-class FuncObject(Func):
+class FuncPoint(Func, Point):
     def __init__(self, f, *args, **kwargs):
-        Func.__init__(f, *args, **kwargs)
+        super().__init__(f, *args, **kwargs)
     @property
-    def x():
+    def x(self):
         return self.value.x
     @property
-    def y():
-        return self.value.y[
-
-class PointFromK(Point):
+    def y(self):
+        return self.value.y
+            
+class PointFromK(FuncPoint):
     def __init__(self, start, end, k):
-        self.__start = start
-        self.__end = end
-        self.__k = to_value(k)
-    @property
-    def x():
-        return self.__start.x * ( - self.__start
-    @property
-    def y():
-        return self.__end
+        super().__init__(lambda s, e, v:s*(1-v.value)+e*v.value, start, end, to_value(k))
 
-class Midpoint(Point):
+class Midpoint(PointFromK):
     def __init__(self, start, end):
-        self.__start = start
-        self.__end = end
-    @property
-    def x():
-        return __start.x *  + __end.x
+        super().__init__(start, end, 0.5)
+
+class DotFromPoint(manim.Dot):
+    def __init__(self, point, **kwargs):
+        self.__point = point
+        self.__kwargs = kwargs
+        super().__init__(point.x*manim.RIGHT+point.y*manim.UP, **kwargs)
+    def upd(self):
+        self.move_to(self.__point.x*manim.RIGHT+self.__point.y*manim.UP, **self.__kwargs)
+
+class UpdGroup(manim.VGroup):
+    def __init__(self, 
+
+# class LineFromSegment(manim.Line):
+    # def __init__(self, point, **kwargs):
+        # super().__init__(point.x*manim.RIGHT+point.y*manim.UP, **kwargs)
+    # def upd(self):
+        # self.move_to(point.x*manim.RIGHT+point.y*manim.UP, **kwargs)
+        

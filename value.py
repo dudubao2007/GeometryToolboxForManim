@@ -10,20 +10,22 @@ class Value:
     def value(self, value):
         self.__value = value
 
-def to_value(x):
-    if hasattr(x, "value"):
-        return x
-    return Value(x)
 
 class Func(Value):
+    upd = 0
     def __init__(self, f, *args, **kwargs):
         self.__f = f
         self.__args = args
         self.__kwargs = kwargs
+        self.upd = Func.upd
+        self.__value = f(*args, **kwargs)
     
     @property
     def value(self):
-        return self.__f(*self.__args, **self.__kwargs)
+        if Func.upd > self.upd:
+            self.__value = self.__f(*self.__args, **self.__kwargs)
+            self.upd = Func.upd
+        return self.__value
 
 if __name__ == "__main__":
     a = Value(3)

@@ -1,23 +1,22 @@
 import utils
-from value import *
 import math
 import sys
 class Vector:
     def __init__(self, x = 0.0, y = 0.0):
-        self.__x = to_value(x)
-        self.__y = to_value(y)
+        self.__x = x
+        self.__y = y
     @property
     def x(self):
-        return self.__x.value
+        return self.__x
     @x.setter
     def x(self, x):
-        self.__x = to_value(x)
+        self.__x = x
     @property
     def y(self):
-        return self.__y.value
+        return self.__y
     @y.setter
     def y(self, y):
-        self.__y = to_value(y)
+        self.__y = y
     def __eq__(self, obj):
         return utils.eq(self.x, obj.x) and utils.eq(self.y, obj.y)
     def __add__(self, obj):
