@@ -100,4 +100,12 @@ def vector_div(u, v):
 
 def get_k(C, A, B):
     return VectorDiv(C-A, B-A)
+
+def point_to_vector_distance(A, vec):
+    #give the distance between a point A and a line passing through the origin with a direction of vec.
+    return abs(A^vec/abs(vec))
+
+def point_to_vector_signed_distance(A, vec):
+    #give the signed distance between a point A and a line passing through the origin with a direction of vec.
+    return A^vec/abs(vec)
     
