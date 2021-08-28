@@ -88,10 +88,6 @@ def is_vertical(a, b):
 def is_parallel(a, b):
     return is_collinear(a.direction, b.direction)
 
-def line_intersection(a, b):
-    assert not is_parallel(a, b), "Parallel lines never intersect."
-    return a.start - a.direction * (((a.start-b.start)^(b.direction)) / (a.direction^b.direction))
-
 def parallel_line(P, l):
     return Line(P, l.direction)
 
