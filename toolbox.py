@@ -42,6 +42,29 @@ class FuncPoint(Func, Point):
     @property
     def y(self):
         return self.value.y
+
+class FuncSegment(Func, Segment):
+    def __init__(self, f, *args, **kwargs):
+        super().__init__(f, *args, **kwargs)
+    @property
+    def start(self):
+        return self.value.start
+    @property
+    def end(self):
+        return self.value.end
+    @property
+    def direction(self):
+        return self.value.direction
+
+class FuncCircle(Func, Circle):
+    def __init__(self, f, *args, **kwargs):
+        super().__init__(f, *args, **kwargs)
+    @property
+    def center(self):
+        return self.value.center
+    @property
+    def radius(self):
+        return self.value.radius
             
 class PointFromK(FuncPoint):
     def __init__(self, start, end, k):
@@ -51,21 +74,42 @@ class Midpoint(PointFromK):
     def __init__(self, start, end):
         super().__init__(start, end, 0.5)
 
+def to_pos(point):
+    return point.x*manim.RIGHT+point.y*manim.UP
+
 class DotFromPoint(manim.Dot):
     def __init__(self, point, **kwargs):
-        self.__point = point
-        self.__kwargs = kwargs
-        super().__init__(point.x*manim.RIGHT+point.y*manim.UP, **kwargs)
+        self.point = point
+        self.kwargs = kwargs
+        super().__init__(to_pos(point), **kwargs)
+        point.dot = self
     def upd(self):
-        self.move_to(self.__point.x*manim.RIGHT+self.__point.y*manim.UP, **self.__kwargs)
+        self.move_to(to_pos(self.point))
 
 class UpdGroup(manim.VGroup):
     def __init__(self, *args):
         super().__init__(*args)
+    def upd(self):
+        for mobject in self.submobjects:
+            mobject.upd()
 
-# class LineFromSegment(manim.Line):
-    # def __init__(self, point, **kwargs):
-        # super().__init__(point.x*manim.RIGHT+point.y*manim.UP, **kwargs)
-    # def upd(self):
-        # self.move_to(point.x*manim.RIGHT+point.y*manim.UP, **kwargs)
-        
+class LineFromSegment(manim.Line):
+    def __init__(self, segment, use_dot = True, **kwargs):
+        self.segment = segment
+        self.kwargs = kwargs
+        if use_dot and hasattr(self.segment.start, "dot") and hasattr(self.segment.end, "dot"):
+            super().__init__(segment.start.dot, segment.end.dot, **kwargs)
+        else:
+            super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
+        segment.line = self
+    def upd(self):
+        self.put_start_and_end_on(to_pos(self.segment.start), to_pos(self.segment.end))
+
+class CircleFromCircle(manim.Circle):
+    def __init__(self, circle, **kwargs):
+        self.circle = circle
+        self.kwargs = kwargs
+        super().__init__(arc_center = to_pos(circle.center), radius = circle.radius, **kwargs)
+        circle.circle = self
+    def upd(self):
+        self.move_to(to_pos(self.circle.center)).set_width(self.circle.radius*2)
