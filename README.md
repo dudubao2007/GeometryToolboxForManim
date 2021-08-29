@@ -53,7 +53,48 @@ Lines is discribe by a point on the line and a direction.
 Circles is discribe by its center and radius.
 
 # Examples
-TODO
+```
+from manim import *
+import toolbox as tb
+from value import *
+from intersections import Point, Segment, line_intersection, get_circumcenter, get_circle_from_center_point
+
+DFP = tb.DotFromPoint
+LFS = tb.LineFromSegment
+CFC = tb.CircleFromCircle
+
+class Test(Scene):
+    def construct(self):
+        A = Point(-2, 0)
+        B = Point(2, 0)
+        C = Point(-2, 2)
+        O = tb.FuncPoint(get_circumcenter, A, B, C)
+        Circ = tb.FuncCircle(get_circle_from_center_point, O, A)
+        group = tb.UpdGroup(
+            CFC(Circ), 
+            DFP(A), DFP(B), DFP(C), 
+            LFS(Segment(A, B)), LFS(Segment(A, C)), LFS(Segment(B, C)), 
+            DFP(O)
+        )
+        self.add(group)
+        def Updater(obj, alpha):
+            C.x = -2+4*alpha
+            Func.upd += 1
+            obj.upd()
+        self.play(
+            UpdateFromAlphaFunc(group, Updater),
+            run_time = 2
+        )
+        self.wait()
+```
+
+https://user-images.githubusercontent.com/86904416/131252494-fee4515d-c0a2-4b44-a3dd-c5e5db60e9b0.mp4
+
+```
+
+```
+
+https://user-images.githubusercontent.com/86904416/131252488-6d6107d5-9936-47f9-b07f-b45ba26ba428.mp4
 
 # Contributing
 Feel free to open an issue or pull a request, and add new operations to our project.  
