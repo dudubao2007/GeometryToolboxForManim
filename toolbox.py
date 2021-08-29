@@ -66,13 +66,13 @@ class FuncCircle(Func, Circle):
     def radius(self):
         return self.value.radius
             
-class PointFromK(FuncPoint):
-    def __init__(self, start, end, k):
-        super().__init__(lambda s, e, v:s*(1-v.value)+e*v.value, start, end, to_value(k))
+# class PointFromK(FuncPoint):
+    # def __init__(self, start, end, k):
+        # super().__init__(lambda s, e, v:s*(1-v.value)+e*v.value, start, end, to_value(k))
 
-class Midpoint(PointFromK):
-    def __init__(self, start, end):
-        super().__init__(start, end, 0.5)
+# class Midpoint(PointFromK):
+    # def __init__(self, start, end):
+        # super().__init__(start, end, 0.5)
 
 def to_pos(point):
     return point.x*manim.RIGHT+point.y*manim.UP
@@ -80,27 +80,27 @@ def to_pos(point):
 class DotFromPoint(manim.Dot):
     def __init__(self, point, **kwargs):
         self.point = point
-        self.kwargs = kwargs
         super().__init__(to_pos(point), **kwargs)
         point.dot = self
     def upd(self):
         self.move_to(to_pos(self.point))
 
-class UpdGroup(manim.VGroup):
-    def __init__(self, *args):
-        super().__init__(*args)
-    def upd(self):
-        for mobject in self.submobjects:
-            mobject.upd()
+
+# class LineFromSegment(manim.Line):
+    # def __init__(self, segment, use_dot = True, **kwargs):
+        # self.segment = segment
+        # if use_dot and hasattr(self.segment.start, "dot") and hasattr(self.segment.end, "dot"):
+            # super().__init__(segment.start.dot, segment.end.dot, **kwargs)
+        # else:
+            # super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
+        # segment.line = self
+    # def upd(self):
+        # self.put_start_and_end_on(to_pos(self.segment.start), to_pos(self.segment.end))
 
 class LineFromSegment(manim.Line):
-    def __init__(self, segment, use_dot = True, **kwargs):
+    def __init__(self, segment, **kwargs):
         self.segment = segment
-        self.kwargs = kwargs
-        if use_dot and hasattr(self.segment.start, "dot") and hasattr(self.segment.end, "dot"):
-            super().__init__(segment.start.dot, segment.end.dot, **kwargs)
-        else:
-            super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
+        super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
         segment.line = self
     def upd(self):
         self.put_start_and_end_on(to_pos(self.segment.start), to_pos(self.segment.end))
@@ -108,8 +108,25 @@ class LineFromSegment(manim.Line):
 class CircleFromCircle(manim.Circle):
     def __init__(self, circle, **kwargs):
         self.circle = circle
-        self.kwargs = kwargs
         super().__init__(arc_center = to_pos(circle.center), radius = circle.radius, **kwargs)
         circle.circle = self
     def upd(self):
         self.move_to(to_pos(self.circle.center)).set_width(self.circle.radius*2)
+
+def to_manim(obj):
+    if isinstance(obj, manim.VMobject):
+        return obj
+    if isinstance(obj, Point):
+        return DotFromPoint(obj)
+    if isinstance(obj, Segment):
+        return LineFromSegment(obj)
+    if isinstance(obj, Circle):
+        return CircleFromCircle(obj)
+    return NotImplementedError
+
+class UpdGroup(manim.VGroup):
+    def __init__(self, *args):
+        super().__init__(*[to_manim(arg) for arg in args])
+    def upd(self):
+        for mobject in self.submobjects:
+            mobject.upd()
