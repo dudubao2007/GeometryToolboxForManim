@@ -60,7 +60,8 @@ class DotFromPoint(manim.Dot):
         self.move_to(self.__point.x*manim.RIGHT+self.__point.y*manim.UP, **self.__kwargs)
 
 class UpdGroup(manim.VGroup):
-    def __init__(self, 
+    def __init__(self, *args):
+        super().__init__(*args)
 
 # class LineFromSegment(manim.Line):
     # def __init__(self, point, **kwargs):

@@ -60,7 +60,7 @@ def is_vector_collinear(u, v):
     return utils.eq(u^v)
 
 def is_collinear(A, B, O = Point()):
-    return IsVectorCollinear(A-O, B-O)
+    return is_vector_collinear(A-O, B-O)
 
 def vector_signed_angle(u, v):
     a = math.atan2(u^v, u*v)
@@ -72,16 +72,16 @@ def vector_angle(u, v):
     return abs(math.atan2(u^v, u*v))
 
 def angle(A, B, O = Point()):
-    return VectorAngle(A-O, B-O)
+    return vector_angle(A-O, B-O)
     
 def signed_angle(A, B, O = Point()):
-    return VectorSignedAngle(A-O, B-O)
+    return vector_signed_angle(A-O, B-O)
 
 def is_vector_perpendicular(u, v):
     return utils.eq(u*v)
 
 def is_perpendicular(A, B, O = Point()):
-    return IsVectorVertical(A-O, B-O)
+    return is_vector_perpendicular(A-O, B-O)
 
 def vector_rotate(v, theta = 0.5*math.pi):
     c = math.cos(theta)
@@ -89,11 +89,11 @@ def vector_rotate(v, theta = 0.5*math.pi):
     return Vector(v.x*c-v.y*s, v.x*s+v.y*c)
 
 def rotate(A, theta = 0.5*math.pi, O = Point()):
-    return O + VectorRotate(A-O, theta)
+    return O + vector_rotate(A-O, theta)
 
 def vector_div(u, v):
     assert v != Vector(), "Divided by 0-vector."
-    assert IsVectorCollinear(u, v), "Non-collinear vectors in VectorDiv."
+    assert IsVectorCollinear(u, v), "Non-collinear vectors in vector_div."
     if not utils.eq(v.x):
         return u.x/v.x
     return u.y/v.y
