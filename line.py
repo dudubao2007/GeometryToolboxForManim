@@ -82,18 +82,6 @@ class HalfLine(LineLike):
     def __repr__(self):
         return f"HalfLine({self.start}, {self.direction})"
 
-def is_vertical(a, b):
-    return is_perpendicular(a.direction, b.direction)
-
-def is_parallel(a, b):
-    return is_collinear(a.direction, b.direction)
-
-def parallel_line(P, l):
-    return Line(P, l.direction)
-
-def vertical_line(P, l):
-    return Line(P, Vector(-l.direction.y, l.direction.x))
-
 # def GetLine(A, t, method = "AB"):
     # if (method == "AB"):
         # return Line(A, t-A)

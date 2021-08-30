@@ -1,108 +1,132 @@
-import vector as vt
+import vector
 import line
-from manim import *
-import utils
-from update import *
-import types
-def toPoint(d):
-    return vt.Point(d.get_center()[0], d.get_center()[1])
+import circle
+from value import *
+import manim
 
-def toDot(p, **kwargs):
-    return Dot(np.array([p.x, p.y, 0]), **kwargs)
+def to_value(x):
+    if hasattr(x, "value"):
+        return x
+    return Value(x)
 
-def PointDot(p, **kwargs):
-    return p, toDot(p, **kwargs)
+# class GetLine(Line):
+    # def __init__(self, start, end):
+        # self.__start = start
+        # self.__end = end
+    # @property
+    # def direction():
+        # return self.__end - self.__start
+    # @property
+    # def end():
+        # return self.__end
 
-def DotPoint(d):
-    return d, toPoint(d)
+# class GetHalfLine(HalfLine):
+    # def __init__(self, start, end):
+        # self.__start = start
+        # self.__end = end
+    # @property
+    # def direction():
+        # return self.__end - self.__start
+    # @property
+    # def end():
+        # return self.__end
+        
+# GetSegment = Segment
 
-def UpdatePointDot(p, d, sp, **kwargs):
-    p.update(sp)
-    d.become(toDot(p, **kwargs))
+class FuncPoint(Func, vector.Point):
+    def __init__(self, f, *args, **kwargs):
+        super().__init__(f, *args, **kwargs)
+    @property
+    def x(self):
+        return self.value.x
+    @property
+    def y(self):
+        return self.value.y
 
-def UpdateDotPoint(d, p, sd):
-    d.become(sd)
-    p = toPoint(d)
+class FuncSegment(Func, line.Segment):
+    def __init__(self, f, *args, **kwargs):
+        super().__init__(f, *args, **kwargs)
+    @property
+    def start(self):
+        return self.value.start
+    @property
+    def end(self):
+        return self.value.end
+    @property
+    def direction(self):
+        return self.value.direction
 
-def toSegment(l):
-    return line.Segment(Point(s.start[0], s.start[1]), Point(s.end[0], s.end[1]))
+class FuncCircle(Func, circle.Circle):
+    def __init__(self, f, *args, **kwargs):
+        super().__init__(f, *args, **kwargs)
+    @property
+    def center(self):
+        return self.value.center
+    @property
+    def radius(self):
+        return self.value.radius
+            
+# class PointFromK(FuncPoint):
+    # def __init__(self, start, end, k):
+        # super().__init__(lambda s, e, v:s*(1-v.value)+e*v.value, start, end, to_value(k))
 
-def toLine(s, **kwargs):
-    return Line(np.array([s.A.x, s.A.y, 0]), np.array([s.B.x, s.B.y, 0]), **kwargs)
+# class Midpoint(PointFromK):
+    # def __init__(self, start, end):
+        # super().__init__(start, end, 0.5)
 
-def SegmentLine(s, **kwargs):
-    return s, toLine(s, **kwargs)
+def to_pos(point):
+    return point.x*manim.RIGHT+point.y*manim.UP
 
-def LineSegment(l):
-    return l, toSegment(l)
-
-def UpdateSegmentLine(s, l, ss):
-    s.update(ss)
-    l.put_start_and_end_on(np.array([s.A.x, s.A.y, 0]), np.array([s.B.x, s.B.y, 0]))
-
-def UpdateLineSegment(s, l, sl):
-    l.become(sl)
-    s = toPoint(l)
-
-
-class UDot(Update):
+class DotFromPoint(manim.Dot):
     def __init__(self, point, **kwargs):
-        super().__init__(point)
         self.point = point
-        self.uvalue = toDot(uvalue(point), **kwargs)
-        self.kwargs = kwargs
-    def set_kwargs(self, **kwargs):
-        self.uvalue.become(toDot(uvalue(self.point), **kwargs))
-        self.kwargs = kwargs
-    def update_self(self):
-        self.uvalue.become(toDot(uvalue(self.point), **self.kwargs))
+        super().__init__(to_pos(point), **kwargs)
+        point.dot = self
+    def upd(self):
+        self.move_to(to_pos(self.point))
 
-class ULine(Update):
-    def __init__(self, seg, **kwargs):
-        super().__init__(seg)
-        self.seg = seg
-        self.uvalue = toLine(uvalue(seg), **kwargs)
-        self.kwargs = kwargs
-    def set_kwargs(self, **kwargs):
-        self.uvalue.become(toLine(uvalue(self.seg), **kwargs))
-        self.kwargs = kwargs
-    def update_self(self):
-        self.uvalue.become(toLine(uvalue(self.seg), **self.kwargs))
 
-class UDotLine(Update):
-    def __init__(self, a, b, **kwargs):
-        super().__init__(a, b)
-        self.a = a
-        self.b = b
-        self.uvalue = Line(uvalue(a), uvalue(b), **kwargs)
-        self.kwargs = kwargs
-    def set_kwargs(self, **kwargs):
-        self.uvalue.become(Line(uvalue(self.a), uvalue(self.b), **self.kwargs))
-        self.kwargs = kwargs
-    def update_self(self):
-        self.uvalue.put_start_and_end_on(uvalue(self.a).get_center(), uvalue(self.b).get_center())#self.uvalue.account_for_buff(uvalue(self.a).radius)
+# class LineFromSegment(manim.Line):
+    # def __init__(self, segment, use_dot = True, **kwargs):
+        # self.segment = segment
+        # if use_dot and hasattr(self.segment.start, "dot") and hasattr(self.segment.end, "dot"):
+            # super().__init__(segment.start.dot, segment.end.dot, **kwargs)
+        # else:
+            # super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
+        # segment.line = self
+    # def upd(self):
+        # self.put_start_and_end_on(to_pos(self.segment.start), to_pos(self.segment.end))
 
-def UvalueDot(p):
-    P = Uvalue(p)
-    return P, UDot(P)
+class LineFromSegment(manim.Line):
+    def __init__(self, segment, **kwargs):
+        self.segment = segment
+        super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
+        segment.line = self
+    def upd(self):
+        self.put_start_and_end_on(to_pos(self.segment.start), to_pos(self.segment.end))
 
-def UvalueLine(l):
-    l = Uvalue(l)
-    return l, ULine(l)
+class CircleFromCircle(manim.Circle):
+    def __init__(self, circle, **kwargs):
+        self.circle = circle
+        super().__init__(arc_center = to_pos(circle.center), radius = circle.radius, **kwargs)
+        circle.circle = self
+    def upd(self):
+        self.move_to(to_pos(self.circle.center)).set_width(self.circle.radius*2)
 
-def UDLine(A, B, a = None, b = None, **kwargs):
-    if a is None:
-        a = UDot(A)
-    if b is None:
-        b = UDot(B)
-    s = Ufunc(line.GetSegment, A, B)
-    l = UDotLine(a, b, **kwargs)
-    return s, l
+def to_manim(obj):
+    if isinstance(obj, manim.VMobject):
+        return obj
+    if isinstance(obj, vector.Point):
+        return DotFromPoint(obj)
+    if isinstance(obj, line.Segment):
+        return LineFromSegment(obj)
+    if isinstance(obj, circle.Circle):
+        return CircleFromCircle(obj)
+    return NotImplementedError
 
-def UfuncDot(f, *args, **kwargs):
-    P = Ufunc(f, *args, **kwargs)
-    return P, UDot(P)
-
-def UfuncLine(f, *args, **kwargs):
-    l = Ufunc(f, *args, **kwargs)
-    return l, ULine(l)
+class UpdGroup(manim.VGroup):
+    def __init__(self, *args):
+        super().__init__(*[to_manim(arg) for arg in args])
+    def upd(self):
+        for mobject in self.submobjects:
+            mobject.upd()

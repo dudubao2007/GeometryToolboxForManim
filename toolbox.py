@@ -1,132 +1,189 @@
-from vector import *
-from line import *
-from circle import *
-from value import *
-import manim
+import vector 
+import line
+import circle
+import utils
+import math
 
-def to_value(x):
-    if hasattr(x, "value"):
-        return x
-    return Value(x)
+def point_from_k(A, B, k):
+    return A * (1.0-k) + B * k
 
-# class GetLine(Line):
-    # def __init__(self, start, end):
-        # self.__start = start
-        # self.__end = end
-    # @property
-    # def direction():
-        # return self.__end - self.__start
-    # @property
-    # def end():
-        # return self.__end
+def midpoint(A, B):
+    return (A + B) * 0.5
 
-# class GetHalfLine(HalfLine):
-    # def __init__(self, start, end):
-        # self.__start = start
-        # self.__end = end
-    # @property
-    # def direction():
-        # return self.__end - self.__start
-    # @property
-    # def end():
-        # return self.__end
-        
-# GetSegment = Segment
+def distance(A, B):
+    return abs(A - B)
 
-class FuncPoint(Func, Point):
-    def __init__(self, f, *args, **kwargs):
-        super().__init__(f, *args, **kwargs)
-    @property
-    def x(self):
-        return self.value.x
-    @property
-    def y(self):
-        return self.value.y
+def is_vector_collinear(u, v):
+    return utils.eq(u^v)
 
-class FuncSegment(Func, Segment):
-    def __init__(self, f, *args, **kwargs):
-        super().__init__(f, *args, **kwargs)
-    @property
-    def start(self):
-        return self.value.start
-    @property
-    def end(self):
-        return self.value.end
-    @property
-    def direction(self):
-        return self.value.direction
+def is_collinear(A, B, O = vector.Point()):
+    return is_vector_collinear(A-O, B-O)
 
-class FuncCircle(Func, Circle):
-    def __init__(self, f, *args, **kwargs):
-        super().__init__(f, *args, **kwargs)
-    @property
-    def center(self):
-        return self.value.center
-    @property
-    def radius(self):
-        return self.value.radius
-            
-# class PointFromK(FuncPoint):
-    # def __init__(self, start, end, k):
-        # super().__init__(lambda s, e, v:s*(1-v.value)+e*v.value, start, end, to_value(k))
+def vector_signed_angle(u, v):
+    a = math.atan2(u^v, u*v)
+    if utils.eq(abs(a), math.pi):
+        sys.stderr.write("Warning, calculating signed angle with angle pi.\n")
+    return a
 
-# class Midpoint(PointFromK):
-    # def __init__(self, start, end):
-        # super().__init__(start, end, 0.5)
+def vector_angle(u, v):
+    return abs(math.atan2(u^v, u*v))
 
-def to_pos(point):
-    return point.x*manim.RIGHT+point.y*manim.UP
+def angle(A, B, O = vector.Point()):
+    return vector_angle(A-O, B-O)
+    
+def signed_angle(A, B, O = vector.Point()):
+    return vector_signed_angle(A-O, B-O)
 
-class DotFromPoint(manim.Dot):
-    def __init__(self, point, **kwargs):
-        self.point = point
-        super().__init__(to_pos(point), **kwargs)
-        point.dot = self
-    def upd(self):
-        self.move_to(to_pos(self.point))
+def is_vector_perpendicular(u, v):
+    return utils.eq(u*v)
+
+def is_perpendicular(A, B, O = vector.Point()):
+    return is_vector_perpendicular(A-O, B-O)
+
+def vector_rotate(v, theta = 0.5*math.pi):
+    c = math.cos(theta)
+    s = math.sin(theta)
+    return vector.Vector(v.x*c-v.y*s, v.x*s+v.y*c)
+
+def rotate(A, theta = 0.5*math.pi, O = vector.Point()):
+    return O + vector_rotate(A-O, theta)
+
+def is_vertical(a, b):
+    return is_perpendicular(a.direction, b.direction)
+
+def is_parallel(a, b):
+    return is_collinear(a.direction, b.direction)
+
+def parallel_line(P, l):
+    return line.Line(P, l.direction)
+
+def vertical_line(P, l):
+    return line.Line(P, vector.Vector(-l.direction.y, l.direction.x))
+
+def vector_div(u, v):
+    assert v != vector.Vector(), "Divided by 0-vector."
+    assert IsVectorCollinear(u, v), "Non-collinear vectors in vector_div."
+    if not utils.eq(v.x):
+        return u.x/v.x
+    return u.y/v.y
+
+def get_k(C, A, B):
+    return VectorDiv(C-A, B-A)
+
+def point_to_vector_distance(A, vec):
+    #give the distance between a point A and a line passing through the origin with a direction of vec.
+    return abs(A^vec/abs(vec))
+
+def point_to_vector_signed_distance(A, vec):
+    #give the signed distance between a point A and a line passing through the origin with a direction of vec.
+    return A^vec/abs(vec)
 
 
-# class LineFromSegment(manim.Line):
-    # def __init__(self, segment, use_dot = True, **kwargs):
-        # self.segment = segment
-        # if use_dot and hasattr(self.segment.start, "dot") and hasattr(self.segment.end, "dot"):
-            # super().__init__(segment.start.dot, segment.end.dot, **kwargs)
-        # else:
-            # super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
-        # segment.line = self
-    # def upd(self):
-        # self.put_start_and_end_on(to_pos(self.segment.start), to_pos(self.segment.end))
+def line_intersection(a, b):
+    if is_parallel(a, b):
+        print("Parallel lines, return None.")
+        return None
+    else:
+        return a.start - a.direction * (((a.start-b.start) ^ (b.direction)) / (a.direction ^ b.direction))
 
-class LineFromSegment(manim.Line):
-    def __init__(self, segment, **kwargs):
-        self.segment = segment
-        super().__init__(to_pos(segment.start), to_pos(segment.end), **kwargs)
-        segment.line = self
-    def upd(self):
-        self.put_start_and_end_on(to_pos(self.segment.start), to_pos(self.segment.end))
 
-class CircleFromCircle(manim.Circle):
-    def __init__(self, circle, **kwargs):
-        self.circle = circle
-        super().__init__(arc_center = to_pos(circle.center), radius = circle.radius, **kwargs)
-        circle.circle = self
-    def upd(self):
-        self.move_to(to_pos(self.circle.center)).set_width(self.circle.radius*2)
+def line_circle_intersection(line, circle):
+    O = circle.center
+    r = circle.radius
+    A = line.start
+    d = line.direction
+    v = O - A
+    # decide whether the intersection exists
+    if utils.sgn(point_to_vector_distance(v, d) - r) > 0:
+        print("No intersections, return None.")
+        return None
+    else:
+        delta = (2*v*d)**2-4*d*d*(v*v-r*r)
+        if utils.sgn(delta) == 0:
+            print("Tangent, return one point.")
+            return (v*d) / (2*d*d) * d+A
+        else:
+            p1 = (2*v*d+np.sqrt(delta)) / (2*d*d)
+            p2 = (2*v*d-np.sqrt(delta)) / (2*d*d)
+            return [p1*d+A, p2*d+A]
 
-def to_manim(obj):
-    if isinstance(obj, manim.VMobject):
-        return obj
-    if isinstance(obj, Point):
-        return DotFromPoint(obj)
-    if isinstance(obj, Segment):
-        return LineFromSegment(obj)
-    if isinstance(obj, Circle):
-        return CircleFromCircle(obj)
-    return NotImplementedError
 
-class UpdGroup(manim.VGroup):
-    def __init__(self, *args):
-        super().__init__(*[to_manim(arg) for arg in args])
-    def upd(self):
-        for mobject in self.submobjects:
-            mobject.upd()
+def get_tangent_point(line,circle):
+    O = circle.center
+    r = circle.radius
+    A = line.start
+    d = line.direction
+    v = O - A
+    if utils.sgn(point_to_vector_distance(v, d)-r) == 0:
+        return (v*d) / (2*d*d) *d
+    else:
+        print("Not a tangent line, return None.")
+        return None
+
+def get_line_from_equation(A, B, C):
+    # get line from the equation Ax + By + C = 0
+    if eq(A) and eq(B):
+        print("Not A line!")
+        return None
+    else:
+        x = -A*C/(A**2+B**2)
+        y = -B*C/(A**2+B**2)
+        d = vector.Vector(-B, A)
+        return line.Line(vector.Point(x,y),d)
+
+def get_radical_axis(circle1, circle2):
+    x1 = circle1.center.x
+    y1 = circle1.center.y
+    x2 = circle2.center.x
+    y2 = circle2.center.y
+    r1 = circle1.radius
+    r2 = circle2.radius
+    f1 = x1**2+y1**2-r1**2
+    f2 = x2**2+y2**2-r2**2
+    A = 2*(x2-x1)
+    B = 2*(y2-y1)
+    C = f1-f2
+    return get_line_from_equation(A,B,C)
+
+def circle_intersection(circle1, circle2):
+    radical = get_radical_axis(circle1, circle2)
+    return line_circle_intersection(radical,circle1)
+
+def parallel_line(P, l):
+    return line.Line(P, l.direction)
+
+def vertical_line(P, l):
+    return line.Line(P, vector.Vector(-l.direction.y, l.direction.x))
+
+def get_circle_from_diameter(A, B):
+    return circle.Circle(midpoint(A, B), 0.5*distance(A, B))
+
+def get_circle_from_center_point(O, A):
+    return circle.Circle(O, distance(O, A))
+
+def get_vector_from_solving(A1, B1, C1, A2, B2, C2):
+    return vector.Vector((C1*B2-C2*B1)/(A1*B2-A2*B1), (A1*C2-A2*C1)/(A1*B2-A2*B1))
+
+def get_circumcenter(A, B, C):
+    x1 = A.x
+    x2 = B.x
+    x3 = C.x
+    y1 = A.y
+    y2 = B.y
+    y3 = C.y
+    A1 = 2*(x2-x1)
+    B1 = 2*(y2-y1)
+    C1 = x2*x2+y2*y2-x1*x1-y1*y1
+    A2 = 2*(x3-x2)
+    B2 = 2*(y3-y2)
+    C2 = x3*x3+y3*y3-x2*x2-y2*y2
+    return get_vector_from_solving(A1, B1, C1, A2, B2, C2)
+
+def get_circle_from_points(A, B, C):
+    return get_circle_from_center_point(get_circumcenter(A, B, C), A)
+
+
+
+def reflect_vector(v, l):
+    return get_vector_from_solving(l.x, l.y, v*l, l.y, -l.x, l^v)
+    
